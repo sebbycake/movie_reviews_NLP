@@ -13,26 +13,39 @@ from sklearn import metrics
 
 # load data
 # note: to re-tab the header before loading the file
-# as the tab was not consistent in the header
+# as the tab was not consistent in the header initially
 df = pd.read_csv("train.tsv", sep='\t', header=0)
 
 # Print the head of df
-print("Raw: ", df.head(10))
+print("Raw: \n", df.head(10), '\n')
 
 
 # Exploratory data analysis (EDA) - for high level summary of data
 size_of_data = len(df)
 positive_reviews_count = len(df[df['sentiment'] == 1])
 negative_reviews_count = len(df[df['sentiment'] == 0])
+df_review_len = df['review'].map(lambda text: len(text))
+shortest_review = min(df_review_len)
+longest_review = max(df_review_len)
+avg_review_length = round(df_review_len.mean())
+std_review = round(df_review_len.std())
 
+print('---Key Statistics---')
 print(f'Size of data {size_of_data}\n') # 997
 print(f'Number of positive reviews: {positive_reviews_count}\n') # 480
 print(f'Number of negative reviews: {negative_reviews_count}\n') # 517
+print(f'Shortest review: {shortest_review} chars\n') # 127 chars
+print(f'Longest review: {longest_review} chars\n') # 5809 chars
+print(f'Average length of review: {avg_review_length} chars\n') # 1317 chars
+print(f'Standard deviation of review: {std_review} chars\n') # 959 chars
 
 # This is a supervised learning classification task, 
 # with sentiment as the response variable and review as the only feature.
 # There are a total of 997 reviews in our dataset. 
 # Among them, 480 are positive and 517 are negative, which is rather balanced. 
+# The average length of reviews across the entire dataset is 1317 characters,
+# with the smallest being 517 and the largest being 5809, which is a significant gap.
+# Moreover, the standard deviation is 959 characters.
 # A quick scanning of the reviews I found that there are many of them
 # with HTML tags and special characters, which can be removed as they are meaningless in text analysis.
 # Many names were also mentioned in the review.
@@ -69,7 +82,7 @@ def clean_review(review):
 
 df['review'] = df['review'].map(lambda text: clean_review(text))
 
-print("Cleaned: ", df.head(10))
+print("Cleaned: \n", df.head(10), '\n')
 
 
 # --------------------------------------
