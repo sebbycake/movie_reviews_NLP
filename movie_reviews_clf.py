@@ -17,31 +17,62 @@ from sklearn import metrics
 df = pd.read_csv("train.tsv", sep='\t', header=0)
 
 # Print the head of df
-print(df.head(10))
+print("Raw: ", df.head(10))
 
+
+# Exploratory data analysis (EDA) - for high level summary of data
+size_of_data = len(df)
+positive_reviews_count = len(df[df['sentiment'] == 1])
+negative_reviews_count = len(df[df['sentiment'] == 0])
+
+print(f'Size of data {size_of_data}\n') # 997
+print(f'Number of positive reviews: {positive_reviews_count}\n') # 480
+print(f'Number of negative reviews: {negative_reviews_count}\n') # 517
+
+# This is a supervised learning classification task, 
+# with sentiment as the response variable and review as the only feature.
+# There are a total of 997 reviews in our dataset. 
+# Among them, 480 are positive and 517 are negative, which is rather balanced. 
+# A quick scanning of the reviews I found that there are many of them
+# with HTML tags and special characters, which can be removed as they are meaningless in text analysis.
+# Many names were also mentioned in the review.
+
+# --------------------------------------
 
 # Data cleaning and text preprocessing
+# Short summary:
+# Since reviews contain HTML tags, they are removed as they hold no meaning.
+# Also, convert all reviews to lowercase as the model may treat capitalized form of two same words the same.
+# Remove extra whitespaces as they are not needed.
+# Perform lemmatization to ensure greater accuracy of meaning of words.
 
-# 1. Remove HTML tags
-def strip_html_tags(text):
-    """
-    remove HTML tags
-    """
-    soup = BeautifulSoup(text, "html.parser")
-    stripped_text = soup.get_text(separator=" ")
-    return stripped_text
+def clean_review(review):
 
-df['review'] = df['review'].map(strip_html_tags)
+    # 1. remove HTML tags
+    soup = BeautifulSoup(review, "html.parser")
+    no_html_tags = soup.get_text(separator=" ")
 
-# 2. Remove extra whitespaces
-df['review'] = df['review'].map(lambda text: text.strip())
+    # 2. convert to lowercase
+    lowercase = no_html_tags.lower()
 
-# 3. Remove special characters
-df['review'] = df['review'].map(lambda text: re.sub('[^A-Za-z0-9]+', ' ', text))
+    # 3. remove extra whitespaces
+    no_white_spaces = lowercase.strip()
 
-# 4. Lemmatization: converting word to its base form
-lemmatizer = WordNetLemmatizer() 
-df['review'] = df['review'].map(lambda text: lemmatizer.lemmatize(text))
+    # 4. remove special characters
+    no_spec_chars = re.sub('[^A-Za-z0-9]+', ' ', no_white_spaces)
+
+    # 5. lemmatization: converting word to its base form
+    lemmatizer = WordNetLemmatizer() 
+    lemmatized_review = lemmatizer.lemmatize(no_spec_chars)
+
+    return lemmatized_review
+
+df['review'] = df['review'].map(lambda text: clean_review(text))
+
+print("Cleaned: ", df.head(10))
+
+
+# --------------------------------------
 
 
 # Create a series to store the response variable (sentiment): y
